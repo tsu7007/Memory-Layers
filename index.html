@@ -4,111 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memory Layers - Apprentissage par couches</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <h1 class="main-title">Étapes de fabrication du plâtre</h1>
-            <p class="subtitle">Apprenez progressivement en révélant les couches d'information</p>
+        <header class="app-header">
+            <h1>Memory Layers</h1>
+            <p class="app-description">Transformez n'importe quel texte en matériel d'apprentissage structuré</p>
         </header>
 
-        <!-- Layer Toggle Buttons -->
-        <div class="layer-controls">
-            <button class="btn btn--layer btn--active" data-layer="structure">
-                Titres
-            </button>
-            <button class="btn btn--layer" data-layer="keywords">
-                Mots-clés  
-            </button>
-            <button class="btn btn--layer" data-layer="fulltext">
-                Texte complet
-            </button>
-        </div>
-
-        <!-- Content Sections -->
-        <main class="content">
-            <section class="text-section card" data-section="introduction">
-                <h2 class="section-title">1. Introduction générale</h2>
-                <div class="keywords-layer">
-                    <div class="keywords">
-                        <span class="keyword">gypse</span>
-                        <span class="keyword">calcination</span>
-                        <span class="keyword">déshydratation</span>
-                        <span class="keyword">plâtre</span>
+        <main class="main-content">
+            <!-- Text Input Section -->
+            <section class="input-section">
+                <div class="card">
+                    <div class="card__body">
+                        <label for="textInput" class="form-label">Collez votre texte d'apprentissage ici</label>
+                        <textarea 
+                            id="textInput" 
+                            class="form-control text-input" 
+                            placeholder="Collez ici votre texte d'étude : articles, cours, notes, documents... L'application analysera automatiquement le contenu pour créer des couches d'apprentissage progressives."
+                            rows="8"
+                        ></textarea>
+                        <div class="input-actions">
+                            <button id="analyzeBtn" class="btn btn--primary btn--lg">
+                                <span class="btn-text">Analyser le texte</span>
+                                <span class="loading-spinner hidden"></span>
+                            </button>
+                            <button id="clearBtn" class="btn btn--outline">Effacer</button>
+                        </div>
                     </div>
-                </div>
-                <div class="fulltext-layer">
-                    <p>Le plâtre est un matériau de construction obtenu par la transformation du gypse, une roche sédimentaire. Le processus de fabrication implique plusieurs étapes cruciales : l'extraction du gypse, sa calcination à température contrôlée, et sa transformation en poudre fine. Cette transformation chimique par déshydratation partielle du gypse permet d'obtenir un liant hydraulique aux propriétés remarquables.</p>
                 </div>
             </section>
 
-            <section class="text-section card" data-section="extraction">
-                <h2 class="section-title">2. Extraction et préparation du gypse</h2>
-                <div class="keywords-layer">
-                    <div class="keywords">
-                        <span class="keyword">carrières</span>
-                        <span class="keyword">mines souterraines</span>
-                        <span class="keyword">broyage</span>
-                        <span class="keyword">homogénéisation</span>
-                    </div>
-                </div>
-                <div class="fulltext-layer">
-                    <p>L'extraction du gypse s'effectue dans des carrières à ciel ouvert ou des mines souterraines. Le gypse extrait est acheminé vers les sites de transformation par convoyeurs, camions ou transport ferroviaire. Une fois arrivé, le minerai est stocké dans des entrepôts où il subit un processus d'homogénéisation pour garantir une qualité constante. Le gypse est ensuite broyé pour obtenir une granulométrie adaptée au processus de calcination.</p>
-                </div>
-            </section>
-
-            <section class="text-section card" data-section="calcination">
-                <h2 class="section-title">3. Processus de calcination</h2>
-                <div class="keywords-layer">
-                    <div class="keywords">
-                        <span class="keyword">fours rotatifs</span>
-                        <span class="keyword">150°C</span>
-                        <span class="keyword">hémihydrate</span>
-                        <span class="keyword">vapeur d'eau</span>
-                    </div>
-                </div>
-                <div class="fulltext-layer">
-                    <p>La calcination s'effectue dans des fours industriels rotatifs à une température de 150°C environ. Ce chauffage contrôlé provoque l'évaporation partielle de l'eau contenue dans le gypse, transformant le sulfate de calcium dihydraté en hémihydrate. Les panaches des cheminées ne contiennent que de la vapeur d'eau, rendant le processus respectueux de l'environnement. Cette étape critique détermine les propriétés finales du plâtre.</p>
+            <!-- Layer Controls -->
+            <section class="layer-controls hidden" id="layerControls">
+                <div class="layer-tabs">
+                    <button class="layer-tab active" data-layer="structure">
+                        <span class="tab-number">1</span>
+                        <span class="tab-label">Titres</span>
+                    </button>
+                    <button class="layer-tab" data-layer="keywords">
+                        <span class="tab-number">2</span>
+                        <span class="tab-label">Mots-clés</span>
+                    </button>
+                    <button class="layer-tab" data-layer="fulltext">
+                        <span class="tab-number">3</span>
+                        <span class="tab-label">Texte complet</span>
+                    </button>
                 </div>
             </section>
 
-            <section class="text-section card" data-section="transformation">
-                <h2 class="section-title">4. Transformation en poudre</h2>
-                <div class="keywords-layer">
-                    <div class="keywords">
-                        <span class="keyword">broyeur</span>
-                        <span class="keyword">moulin</span>
-                        <span class="keyword">poudre fine</span>
-                        <span class="keyword">additifs</span>
+            <!-- Content Display -->
+            <section class="content-display hidden" id="contentDisplay">
+                <div class="card">
+                    <div class="card__body">
+                        <div class="layer-header">
+                            <h2 id="layerTitle">Structure du texte</h2>
+                            <p id="layerDescription">Éléments structurels et titres principaux</p>
+                        </div>
+                        <div class="layer-content" id="layerContent">
+                            <!-- Dynamic content will be inserted here -->
+                        </div>
                     </div>
-                </div>
-                <div class="fulltext-layer">
-                    <p>Après calcination et refroidissement à 60°C, le plâtre cuit passe dans des broyeurs et moulins pour être réduit en poudre fine. Cette étape de 'battage' du plâtre, d'où vient l'expression 'battre comme plâtre', produit la poudre blanche caractéristique. Des additifs peuvent être incorporés selon l'usage final : retardateurs de prise, adjuvants d'adhérence, colorants ou fibres pour améliorer les propriétés spécifiques du produit.</p>
                 </div>
             </section>
 
-            <section class="text-section card" data-section="controle">
-                <h2 class="section-title">5. Contrôle qualité et conditionnement</h2>
-                <div class="keywords-layer">
-                    <div class="keywords">
-                        <span class="keyword">tests qualité</span>
-                        <span class="keyword">ensachage</span>
-                        <span class="keyword">stockage</span>
-                        <span class="keyword">distribution</span>
-                    </div>
+            <!-- Progress Indicator -->
+            <div class="progress-indicator hidden" id="progressIndicator">
+                <div class="progress-step completed">
+                    <span class="step-number">1</span>
+                    <span class="step-label">Analyse du texte</span>
                 </div>
-                <div class="fulltext-layer">
-                    <p>Le plâtre fini subit des contrôles qualité rigoureux : tests de finesse, temps de prise, résistance mécanique et pureté. Une fois validé, il est conditionné en sacs de différents formats selon les besoins du marché. Le stockage s'effectue dans des environnements secs pour préserver ses propriétés. La distribution vers les points de vente ou chantiers complète le cycle de fabrication de ce matériau millénaire.</p>
+                <div class="progress-step">
+                    <span class="step-number">2</span>
+                    <span class="step-label">Extraction des structures</span>
                 </div>
-            </section>
+                <div class="progress-step">
+                    <span class="step-number">3</span>
+                    <span class="step-label">Identification des mots-clés</span>
+                </div>
+            </div>
         </main>
 
-        <footer class="footer">
-            <p>Utilisez les boutons pour révéler progressivement le contenu et mémoriser par couches.</p>
+        <footer class="app-footer">
+            <p>Memory Layers - Apprentissage progressif par couches de complexité</p>
         </footer>
     </div>
 
