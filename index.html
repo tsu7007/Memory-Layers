@@ -3,91 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Layers - Apprentissage par couches</title>
+    <title>Memory Layers - Analyse de Texte</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header class="app-header">
+        <header class="header">
             <h1>Memory Layers</h1>
-            <p class="app-description">Transformez n'importe quel texte en matériel d'apprentissage structuré</p>
+            <p class="subtitle">Analysez vos textes d'apprentissage par couches progressives</p>
         </header>
 
-        <main class="main-content">
-            <!-- Text Input Section -->
+        <main class="main">
+            <!-- Section d'entrée -->
             <section class="input-section">
-                <div class="card">
-                    <div class="card__body">
-                        <label for="textInput" class="form-label">Collez votre texte d'apprentissage ici</label>
-                        <textarea 
-                            id="textInput" 
-                            class="form-control text-input" 
-                            placeholder="Collez ici votre texte d'étude : articles, cours, notes, documents... L'application analysera automatiquement le contenu pour créer des couches d'apprentissage progressives."
-                            rows="8"
-                        ></textarea>
-                        <div class="input-actions">
-                            <button id="analyzeBtn" class="btn btn--primary btn--lg">
-                                <span class="btn-text">Analyser le texte</span>
-                                <span class="loading-spinner hidden"></span>
-                            </button>
-                            <button id="clearBtn" class="btn btn--outline">Effacer</button>
-                        </div>
+                <div class="form-group">
+                    <label for="textInput" class="form-label">Collez votre texte d'apprentissage ici :</label>
+                    <textarea 
+                        id="textInput" 
+                        class="form-control text-input" 
+                        placeholder="Collez votre texte ici (minimum 50 caractères)..."
+                        rows="8"
+                    ></textarea>
+                    <div class="text-stats">
+                        <span id="charCount">0 caractères</span>
+                        <span id="wordCount">0 mots</span>
                     </div>
                 </div>
-            </section>
-
-            <!-- Layer Controls -->
-            <section class="layer-controls hidden" id="layerControls">
-                <div class="layer-tabs">
-                    <button class="layer-tab active" data-layer="structure">
-                        <span class="tab-number">1</span>
-                        <span class="tab-label">Titres</span>
+                
+                <div class="input-controls">
+                    <button id="analyzeBtn" class="btn btn--primary btn--lg">
+                        <span id="analyzeText">Analyser le texte</span>
+                        <span id="analyzeLoader" class="loader hidden">Analyse en cours...</span>
                     </button>
-                    <button class="layer-tab" data-layer="keywords">
-                        <span class="tab-number">2</span>
-                        <span class="tab-label">Mots-clés</span>
-                    </button>
-                    <button class="layer-tab" data-layer="fulltext">
-                        <span class="tab-number">3</span>
-                        <span class="tab-label">Texte complet</span>
-                    </button>
+                    <button id="clearBtn" class="btn btn--outline">Effacer</button>
                 </div>
+
+                <div id="errorMsg" class="error-message hidden"></div>
             </section>
 
-            <!-- Content Display -->
-            <section class="content-display hidden" id="contentDisplay">
-                <div class="card">
-                    <div class="card__body">
-                        <div class="layer-header">
-                            <h2 id="layerTitle">Structure du texte</h2>
-                            <p id="layerDescription">Éléments structurels et titres principaux</p>
-                        </div>
-                        <div class="layer-content" id="layerContent">
-                            <!-- Dynamic content will be inserted here -->
-                        </div>
-                    </div>
+            <!-- Section de contrôle -->
+            <section id="controlSection" class="control-section hidden">
+                <div class="layer-controls">
+                    <button id="titleBtn" class="btn btn--secondary layer-btn active" data-layer="titles">
+                        Titres
+                    </button>
+                    <button id="keywordBtn" class="btn btn--secondary layer-btn" data-layer="keywords">
+                        Mots-clés
+                    </button>
+                    <button id="fullTextBtn" class="btn btn--secondary layer-btn" data-layer="fulltext">
+                        Texte complet
+                    </button>
                 </div>
             </section>
 
-            <!-- Progress Indicator -->
-            <div class="progress-indicator hidden" id="progressIndicator">
-                <div class="progress-step completed">
-                    <span class="step-number">1</span>
-                    <span class="step-label">Analyse du texte</span>
+            <!-- Section d'affichage -->
+            <section id="displaySection" class="display-section hidden">
+                <div class="layer-content">
+                    <div id="layerTitle" class="layer-title"></div>
+                    <div id="layerContent" class="layer-content-body"></div>
                 </div>
-                <div class="progress-step">
-                    <span class="step-number">2</span>
-                    <span class="step-label">Extraction des structures</span>
-                </div>
-                <div class="progress-step">
-                    <span class="step-number">3</span>
-                    <span class="step-label">Identification des mots-clés</span>
-                </div>
-            </div>
+            </section>
         </main>
 
-        <footer class="app-footer">
-            <p>Memory Layers - Apprentissage progressif par couches de complexité</p>
+        <footer class="footer">
+            <p>Instructions : Collez votre texte, cliquez sur "Analyser", puis naviguez entre les couches pour une mémorisation progressive.</p>
         </footer>
     </div>
 

@@ -1,425 +1,386 @@
-// Memory Layers Application - Client-side text processing and layer generation
-
 class MemoryLayers {
     constructor() {
-        this.processedLayers = null;
-        this.currentLayer = 'structure';
+        this.originalText = '';
+        this.detectedTitles = [];
+        this.extractedKeywords = [];
+        this.currentLayer = 'titles';
+        this.isAnalyzing = false;
+        
+        // Mots vides français et anglais
         this.stopWords = new Set([
-            'le', 'de', 'et', 'à', 'un', 'il', 'être', 'et', 'en', 'avoir', 'que', 'pour',
-            'dans', 'ce', 'son', 'une', 'sur', 'avec', 'ne', 'se', 'pas', 'tout', 'plus',
-            'par', 'grand', 'celui', 'me', 'bien', 'autre', 'si', 'leur', 'deux', 'voir',
-            'ou', 'comme', 'temps', 'jour', 'lui', 'des', 'du', 'la', 'les', 'ces', 'ses',
-            'mais', 'sans', 'très', 'aussi', 'alors', 'donc', 'ainsi', 'même', 'encore',
-            'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
-            'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above',
-            'below', 'between', 'among', 'this', 'that', 'these', 'those', 'is', 'am', 'are',
-            'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
-            'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'shall'
+            // Français
+            'le', 'de', 'un', 'à', 'être', 'et', 'en', 'avoir', 'que', 'pour', 'dans', 'ce', 'il', 'une', 'sur', 'avec', 'ne', 'se', 'pas', 'tout', 'pouvoir', 'son', 'une', 'sur', 'mais', 'comme', 'je', 'leur', 'bien', 'encore', 'sans', 'autre', 'après', 'premier', 'vouloir', 'bon', 'nouveau', 'grand', 'notre', 'faire', 'où', 'plus', 'très', 'moins', 'quand', 'comment', 'aussi', 'donc', 'ainsi', 'alors', 'peut', 'cette', 'ces', 'des', 'du', 'par', 'la', 'les', 'aux', 'ses', 'mes', 'tes', 'nos', 'vos', 'leurs', 'si', 'ou', 'ni', 'car', 'or', 'donc', 'mais', 'cependant', 'néanmoins', 'toutefois', 'pourtant', 'malgré', 'selon', 'vers', 'chez', 'sous', 'entre', 'parmi', 'pendant', 'depuis', 'jusqu', 'avant', 'après', 'devant', 'derrière', 'autour', 'près', 'loin', 'dedans', 'dehors', 'dessus', 'dessous',
+            // Anglais
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'out', 'off', 'down', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will', 'just', 'should', 'now', 'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'against', 'between', 'as', 'if', 'while', 'because', 'until', 'although', 'unless', 'since'
         ]);
         
         this.init();
     }
-
+    
     init() {
         this.bindEvents();
+        this.updateStats();
     }
-
+    
     bindEvents() {
+        const textInput = document.getElementById('textInput');
         const analyzeBtn = document.getElementById('analyzeBtn');
         const clearBtn = document.getElementById('clearBtn');
-        const textInput = document.getElementById('textInput');
-        const layerTabs = document.querySelectorAll('.layer-tab');
-
+        const layerBtns = document.querySelectorAll('.layer-btn');
+        
+        textInput.addEventListener('input', () => this.updateStats());
         analyzeBtn.addEventListener('click', () => this.analyzeText());
         clearBtn.addEventListener('click', () => this.clearText());
         
-        textInput.addEventListener('input', () => {
-            const hasText = textInput.value.trim().length > 0;
-            analyzeBtn.disabled = !hasText;
-            clearBtn.style.display = hasText ? 'block' : 'none';
-        });
-
-        layerTabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const layer = e.currentTarget.dataset.layer;
+        layerBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const layer = e.target.dataset.layer;
                 this.switchLayer(layer);
             });
         });
     }
-
+    
+    updateStats() {
+        const textInput = document.getElementById('textInput');
+        const text = textInput.value;
+        
+        const charCount = text.length;
+        const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+        
+        document.getElementById('charCount').textContent = `${charCount} caractères`;
+        document.getElementById('wordCount').textContent = `${wordCount} mots`;
+    }
+    
     async analyzeText() {
+        if (this.isAnalyzing) return;
+        
         const textInput = document.getElementById('textInput');
         const text = textInput.value.trim();
         
-        if (!text) return;
-
-        this.showLoadingState(true);
+        if (text.length < 50) {
+            this.showError('Le texte doit contenir au moins 50 caractères.');
+            return;
+        }
+        
+        this.isAnalyzing = true;
+        this.showAnalyzing(true);
+        this.hideError();
         
         try {
-            // Simulate processing time for better UX
-            await this.delay(500);
+            // Simulation d'un délai de traitement
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
-            // Process the text into layers
-            this.processedLayers = {
-                structure: this.extractStructure(text),
-                keywords: this.extractKeywords(text),
-                fulltext: this.formatFullText(text)
-            };
-
-            // Show the layer controls and content
-            this.showLayerInterface();
-            this.displayLayer(this.currentLayer);
+            this.originalText = text;
+            this.detectedTitles = this.detectStructure(text);
+            this.extractedKeywords = this.extractKeywords(text);
+            
+            this.showControls();
+            this.displayLayer('titles');
             
         } catch (error) {
-            console.error('Error analyzing text:', error);
-            this.showError('Une erreur est survenue lors de l\'analyse du texte.');
+            this.showError('Erreur lors de l\'analyse du texte.');
+            console.error('Analysis error:', error);
         } finally {
-            this.showLoadingState(false);
+            this.isAnalyzing = false;
+            this.showAnalyzing(false);
         }
     }
-
-    extractStructure(text) {
+    
+    detectStructure(text) {
         const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        const structure = [];
-
+        const titles = [];
+        
         lines.forEach((line, index) => {
             let level = 0;
-            let isStructural = false;
-
-            // Check for numbered lists (1., 2., I., II., A., B., etc.)
-            if (/^(\d+\.|\w\.|[IVX]+\.|[a-z]\)|\*|\-|\+)/.test(line)) {
+            let isTitle = false;
+            
+            // Pattern 1: Lignes commençant par des numéros
+            if (/^(\d+\.|\d+\)|\d+\s+[A-Z]|[IVX]+\.|\w\.)/.test(line)) {
+                isTitle = true;
                 level = 1;
-                isStructural = true;
             }
             
-            // Check for ALL CAPS (potential headings)
-            else if (line === line.toUpperCase() && line.length > 2 && line.length < 100) {
-                level = 1;
-                isStructural = true;
-            }
-            
-            // Check for short lines that could be headings
-            else if (line.length < 80 && line.length > 3) {
+            // Pattern 2: Lignes courtes (moins de 80 caractères) et suivies d'un saut de ligne
+            if (line.length < 80 && index < lines.length - 1) {
                 const nextLine = lines[index + 1];
-                const prevLine = lines[index - 1];
-                
-                // If followed by empty line or much longer text
-                if (!nextLine || nextLine.length > line.length * 2) {
+                if (nextLine && nextLine.length > line.length * 1.5) {
+                    isTitle = true;
                     level = 2;
-                    isStructural = true;
-                }
-                
-                // If preceded by empty line
-                if (!prevLine || prevLine.length === 0) {
-                    level = Math.min(level + 1, 2);
-                    isStructural = true;
                 }
             }
             
-            // Check for common heading patterns
-            else if (/^(chapitre|chapter|section|partie|part|introduction|conclusion|résumé|summary)/i.test(line)) {
+            // Pattern 3: Lignes en majuscules
+            if (line === line.toUpperCase() && line.length > 3 && line.length < 100) {
+                isTitle = true;
                 level = 1;
-                isStructural = true;
             }
-
-            if (isStructural) {
-                structure.push({
+            
+            // Pattern 4: Lignes commençant par des mots-clés de titre
+            const titleKeywords = [
+                'chapitre', 'section', 'partie', 'introduction', 'conclusion', 'résumé', 'sommaire',
+                'chapter', 'section', 'part', 'introduction', 'conclusion', 'summary', 'overview'
+            ];
+            
+            const firstWord = line.toLowerCase().split(' ')[0];
+            if (titleKeywords.includes(firstWord)) {
+                isTitle = true;
+                level = 1;
+            }
+            
+            // Pattern 5: Lignes se terminant par ":"
+            if (line.endsWith(':') && line.length < 100) {
+                isTitle = true;
+                level = 2;
+            }
+            
+            if (isTitle) {
+                titles.push({
                     text: line,
                     level: level,
                     index: index
                 });
             }
         });
-
-        return structure.length > 0 ? structure : [{ text: "Aucune structure détectée", level: 1, index: 0 }];
+        
+        return titles;
     }
-
+    
     extractKeywords(text) {
-        // Clean and tokenize text
+        // Nettoyer le texte
         const cleanText = text.toLowerCase()
             .replace(/[^\w\s\u00C0-\u017F]/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
         
+        // Tokenisation
         const words = cleanText.split(' ').filter(word => 
-            word.length > 2 && !this.stopWords.has(word)
+            word.length > 2 && 
+            !this.stopWords.has(word) &&
+            !/^\d+$/.test(word)
         );
-
-        // Calculate word frequencies
+        
+        // Calcul de la fréquence (TF)
         const wordFreq = {};
         words.forEach(word => {
             wordFreq[word] = (wordFreq[word] || 0) + 1;
         });
-
-        // Extract noun phrases and compound terms
-        const phrases = this.extractPhrases(text);
-        phrases.forEach(phrase => {
-            const cleanPhrase = phrase.toLowerCase().trim();
-            if (cleanPhrase.length > 3 && !this.stopWords.has(cleanPhrase)) {
-                wordFreq[cleanPhrase] = (wordFreq[cleanPhrase] || 0) + 2; // Give phrases higher weight
+        
+        // Calcul du TF-IDF simplifié
+        const totalWords = words.length;
+        const keywords = [];
+        
+        for (const [word, freq] of Object.entries(wordFreq)) {
+            if (freq > 1) { // Mots apparaissant au moins 2 fois
+                const tf = freq / totalWords;
+                const idf = Math.log(totalWords / freq); // IDF simplifié
+                const score = tf * idf;
+                
+                keywords.push({
+                    word: word,
+                    frequency: freq,
+                    score: score
+                });
             }
+        }
+        
+        // Trier par score et prendre les 20 premiers
+        return keywords
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 20);
+    }
+    
+    switchLayer(layer) {
+        this.currentLayer = layer;
+        
+        // Mettre à jour les boutons
+        document.querySelectorAll('.layer-btn').forEach(btn => {
+            btn.classList.remove('active');
         });
-
-        // Sort by frequency and relevance
-        const sortedWords = Object.entries(wordFreq)
-            .filter(([word, freq]) => freq > 1 || word.length > 6) // Filter by frequency or length
-            .sort(([a, freqA], [b, freqB]) => {
-                // Prioritize longer terms and higher frequency
-                const scoreA = freqA * (a.length > 6 ? 1.5 : 1);
-                const scoreB = freqB * (b.length > 6 ? 1.5 : 1);
-                return scoreB - scoreA;
-            })
-            .slice(0, 20); // Top 20 keywords
-
-        return sortedWords.map(([word, freq]) => ({
-            term: word,
-            frequency: freq,
-            relevance: this.calculateRelevance(word, freq, words.length)
-        }));
+        document.querySelector(`[data-layer="${layer}"]`).classList.add('active');
+        
+        // Afficher le contenu
+        this.displayLayer(layer);
     }
-
-    extractPhrases(text) {
-        const phrases = [];
-        
-        // Extract phrases in quotes
-        const quotedPhrases = text.match(/"([^"]+)"/g) || [];
-        phrases.push(...quotedPhrases.map(p => p.replace(/"/g, '')));
-        
-        // Extract capitalized phrases (potential proper nouns/terms)
-        const capitalizedPhrases = text.match(/[A-Z][a-z]+ [A-Z][a-z]+(?:\s[A-Z][a-z]+)*/g) || [];
-        phrases.push(...capitalizedPhrases);
-        
-        // Extract phrases with common academic/technical patterns
-        const technicalPhrases = text.match(/\b[a-z]+(?:[-\s][a-z]+){1,3}\b/gi) || [];
-        phrases.push(...technicalPhrases.filter(p => p.length > 8));
-        
-        return phrases;
-    }
-
-    calculateRelevance(word, frequency, totalWords) {
-        const tf = frequency / totalWords;
-        const lengthBonus = Math.min(word.length / 10, 1.5);
-        return tf * lengthBonus;
-    }
-
-    formatFullText(text) {
-        // Enhance the original text with better formatting
-        let formatted = text;
-        
-        // Add paragraph breaks for better readability
-        formatted = formatted.replace(/\n\s*\n/g, '\n\n');
-        
-        // Convert structure elements to headings
-        const structureElements = this.processedLayers?.structure || this.extractStructure(text);
-        
-        structureElements.forEach(element => {
-            if (element.level === 1) {
-                formatted = formatted.replace(
-                    new RegExp(`^${this.escapeRegex(element.text)}$`, 'gm'),
-                    `<h2>${element.text}</h2>`
-                );
-            } else if (element.level === 2) {
-                formatted = formatted.replace(
-                    new RegExp(`^${this.escapeRegex(element.text)}$`, 'gm'),
-                    `<h3>${element.text}</h3>`
-                );
-            }
-        });
-        
-        // Convert line breaks to paragraphs
-        formatted = formatted.split('\n\n').map(paragraph => {
-            if (paragraph.trim() && !paragraph.includes('<h')) {
-                return `<p>${paragraph.trim()}</p>`;
-            }
-            return paragraph;
-        }).join('\n');
-        
-        return formatted;
-    }
-
-    escapeRegex(text) {
-        return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-
-    switchLayer(layerName) {
-        if (!this.processedLayers) return;
-        
-        this.currentLayer = layerName;
-        
-        // Update active tab
-        document.querySelectorAll('.layer-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.layer === layerName);
-        });
-        
-        this.displayLayer(layerName);
-    }
-
-    displayLayer(layerName) {
-        const layerContent = document.getElementById('layerContent');
+    
+    displayLayer(layer) {
         const layerTitle = document.getElementById('layerTitle');
-        const layerDescription = document.getElementById('layerDescription');
+        const layerContent = document.getElementById('layerContent');
         
-        // Add transition effect
-        layerContent.style.opacity = '0';
+        layerContent.innerHTML = '';
+        layerContent.classList.add('fade-in');
         
+        switch (layer) {
+            case 'titles':
+                layerTitle.textContent = 'Structure du texte - Titres détectés';
+                this.displayTitles(layerContent);
+                break;
+            case 'keywords':
+                layerTitle.textContent = 'Mots-clés extraits (TF-IDF)';
+                this.displayKeywords(layerContent);
+                break;
+            case 'fulltext':
+                layerTitle.textContent = 'Texte complet formaté';
+                this.displayFullText(layerContent);
+                break;
+        }
+        
+        // Retirer l'animation après un délai
         setTimeout(() => {
-            switch (layerName) {
-                case 'structure':
-                    layerTitle.textContent = 'Structure du texte';
-                    layerDescription.textContent = 'Éléments structurels et titres principaux';
-                    layerContent.innerHTML = this.renderStructure();
-                    break;
-                    
-                case 'keywords':
-                    layerTitle.textContent = 'Mots-clés et concepts';
-                    layerDescription.textContent = 'Termes importants et concepts clés identifiés';
-                    layerContent.innerHTML = this.renderKeywords();
-                    break;
-                    
-                case 'fulltext':
-                    layerTitle.textContent = 'Texte complet';
-                    layerDescription.textContent = 'Texte original avec formatage amélioré';
-                    layerContent.innerHTML = this.renderFullText();
-                    break;
+            layerContent.classList.remove('fade-in');
+        }, 300);
+    }
+    
+    displayTitles(container) {
+        if (this.detectedTitles.length === 0) {
+            container.innerHTML = '<p>Aucun titre détecté dans ce texte. Essayez avec un texte plus structuré.</p>';
+            return;
+        }
+        
+        const titlesList = document.createElement('ul');
+        titlesList.className = 'titles-list';
+        
+        this.detectedTitles.forEach(title => {
+            const li = document.createElement('li');
+            li.className = `title-level-${title.level}`;
+            li.textContent = title.text;
+            titlesList.appendChild(li);
+        });
+        
+        container.appendChild(titlesList);
+    }
+    
+    displayKeywords(container) {
+        if (this.extractedKeywords.length === 0) {
+            container.innerHTML = '<p>Aucun mot-clé significatif détecté.</p>';
+            return;
+        }
+        
+        const keywordsGrid = document.createElement('div');
+        keywordsGrid.className = 'keywords-grid';
+        
+        this.extractedKeywords.forEach(keyword => {
+            const keywordDiv = document.createElement('div');
+            keywordDiv.className = 'keyword-item';
+            
+            const wordSpan = document.createElement('span');
+            wordSpan.textContent = keyword.word;
+            
+            const scoreSpan = document.createElement('span');
+            scoreSpan.className = 'keyword-score';
+            scoreSpan.textContent = `${keyword.frequency} occurrences`;
+            
+            keywordDiv.appendChild(wordSpan);
+            keywordDiv.appendChild(scoreSpan);
+            keywordsGrid.appendChild(keywordDiv);
+        });
+        
+        container.appendChild(keywordsGrid);
+    }
+    
+    displayFullText(container) {
+        const fullTextDiv = document.createElement('div');
+        fullTextDiv.className = 'full-text';
+        
+        const paragraphs = this.originalText.split('\n\n');
+        
+        paragraphs.forEach(paragraph => {
+            const p = document.createElement('p');
+            
+            // Vérifier si c'est un titre détecté
+            const isTitle = this.detectedTitles.some(title => 
+                paragraph.trim().includes(title.text)
+            );
+            
+            if (isTitle) {
+                p.className = 'highlighted-title';
             }
             
-            layerContent.style.opacity = '1';
-        }, 150);
-    }
-
-    renderStructure() {
-        const structure = this.processedLayers.structure;
-        
-        if (structure.length === 0 || (structure.length === 1 && structure[0].text === "Aucune structure détectée")) {
-            return '<div class="empty-state"><h3>Aucune structure détectée</h3><p>Le texte ne semble pas contenir d\'éléments structurels identifiables.</p></div>';
-        }
-        
-        return `
-            <ul class="structure-list">
-                ${structure.map(item => `
-                    <li class="structure-item level-${item.level}">
-                        ${item.text}
-                    </li>
-                `).join('')}
-            </ul>
-        `;
-    }
-
-    renderKeywords() {
-        const keywords = this.processedLayers.keywords;
-        
-        if (keywords.length === 0) {
-            return '<div class="empty-state"><h3>Aucun mot-clé détecté</h3><p>Impossible d\'identifier des mots-clés significatifs dans ce texte.</p></div>';
-        }
-        
-        return `
-            <div class="keywords-grid">
-                ${keywords.map(keyword => `
-                    <div class="keyword-item">
-                        <span class="keyword-term">${keyword.term}</span>
-                        <span class="keyword-frequency">${keyword.frequency}</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    renderFullText() {
-        const fulltext = this.processedLayers.fulltext;
-        return `<div class="fulltext-content">${fulltext}</div>`;
-    }
-
-    showLayerInterface() {
-        const layerControls = document.getElementById('layerControls');
-        const contentDisplay = document.getElementById('contentDisplay');
-        
-        layerControls.classList.remove('hidden');
-        contentDisplay.classList.remove('hidden');
-        
-        // Update progress indicator
-        this.updateProgressIndicator();
-    }
-
-    updateProgressIndicator() {
-        const progressIndicator = document.getElementById('progressIndicator');
-        const steps = progressIndicator.querySelectorAll('.progress-step');
-        
-        progressIndicator.classList.remove('hidden');
-        
-        steps.forEach((step, index) => {
-            setTimeout(() => {
-                step.classList.add('completed');
-            }, index * 300);
+            p.textContent = paragraph.trim();
+            if (paragraph.trim()) {
+                fullTextDiv.appendChild(p);
+            }
         });
+        
+        container.appendChild(fullTextDiv);
     }
-
-    showLoadingState(isLoading) {
+    
+    showControls() {
+        const controlSection = document.getElementById('controlSection');
+        const displaySection = document.getElementById('displaySection');
+        
+        controlSection.classList.remove('hidden');
+        displaySection.classList.remove('hidden');
+        
+        setTimeout(() => {
+            controlSection.classList.add('show');
+            displaySection.classList.add('show');
+        }, 100);
+    }
+    
+    hideControls() {
+        const controlSection = document.getElementById('controlSection');
+        const displaySection = document.getElementById('displaySection');
+        
+        controlSection.classList.remove('show');
+        displaySection.classList.remove('show');
+        
+        setTimeout(() => {
+            controlSection.classList.add('hidden');
+            displaySection.classList.add('hidden');
+        }, 300);
+    }
+    
+    showAnalyzing(show) {
+        const analyzeText = document.getElementById('analyzeText');
+        const analyzeLoader = document.getElementById('analyzeLoader');
         const analyzeBtn = document.getElementById('analyzeBtn');
-        const btnText = analyzeBtn.querySelector('.btn-text');
-        const spinner = analyzeBtn.querySelector('.loading-spinner');
+        const body = document.body;
         
-        if (isLoading) {
-            analyzeBtn.classList.add('btn--loading');
+        if (show) {
+            analyzeText.classList.add('hidden');
+            analyzeLoader.classList.remove('hidden');
             analyzeBtn.disabled = true;
-            btnText.textContent = 'Analyse en cours...';
-            spinner.classList.remove('hidden');
+            body.classList.add('loading');
         } else {
-            analyzeBtn.classList.remove('btn--loading');
+            analyzeText.classList.remove('hidden');
+            analyzeLoader.classList.add('hidden');
             analyzeBtn.disabled = false;
-            btnText.textContent = 'Analyser le texte';
-            spinner.classList.add('hidden');
+            body.classList.remove('loading');
         }
     }
-
-    clearText() {
-        const textInput = document.getElementById('textInput');
-        const layerControls = document.getElementById('layerControls');
-        const contentDisplay = document.getElementById('contentDisplay');
-        const progressIndicator = document.getElementById('progressIndicator');
-        
-        textInput.value = '';
-        layerControls.classList.add('hidden');
-        contentDisplay.classList.add('hidden');
-        progressIndicator.classList.add('hidden');
-        
-        this.processedLayers = null;
-        this.currentLayer = 'structure';
-        
-        // Reset active tab
-        document.querySelectorAll('.layer-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.layer === 'structure');
-        });
-        
-        // Reset button states
-        document.getElementById('analyzeBtn').disabled = true;
-        document.getElementById('clearBtn').style.display = 'none';
-    }
-
+    
     showError(message) {
-        const layerContent = document.getElementById('layerContent');
-        layerContent.innerHTML = `
-            <div class="empty-state">
-                <h3>Erreur</h3>
-                <p>${message}</p>
-            </div>
-        `;
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.textContent = message;
+        errorMsg.classList.remove('hidden');
+        
+        setTimeout(() => {
+            this.hideError();
+        }, 5000);
     }
-
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    
+    hideError() {
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.classList.add('hidden');
+    }
+    
+    clearText() {
+        document.getElementById('textInput').value = '';
+        this.originalText = '';
+        this.detectedTitles = [];
+        this.extractedKeywords = [];
+        this.currentLayer = 'titles';
+        
+        this.hideControls();
+        this.hideError();
+        this.updateStats();
+        
+        // S'assurer que le bouton d'analyse est dans l'état normal
+        this.showAnalyzing(false);
     }
 }
 
-// Initialize the application when DOM is loaded
+// Initialisation de l'application
 document.addEventListener('DOMContentLoaded', () => {
     new MemoryLayers();
-});
-
-// Add some sample text for demonstration (optional)
-window.addEventListener('load', () => {
-    const textInput = document.getElementById('textInput');
-    if (!textInput.value) {
-        // Keep the placeholder empty by default so users can paste their own content
-        document.getElementById('analyzeBtn').disabled = true;
-    }
 });
